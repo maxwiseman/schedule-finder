@@ -38,7 +38,7 @@ export interface StreamData {
     issues: string[];
   };
   extractionStatus: "idle" | "extracting" | "complete";
-  databaseStatus: "idle" | "saving" | "complete" | "error";
+  databaseStatus: "idle" | "saving" | "complete" | "error" | "skipped";
   scheduleId?: number;
   status: string;
   error?: string;
