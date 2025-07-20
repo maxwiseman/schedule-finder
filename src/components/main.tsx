@@ -87,7 +87,7 @@ export function Main() {
   // Show login message if not authenticated (unless in preview mode)
   if (!isPreviewMode && !session?.user) {
     return (
-      <main className="size-full gap-6 flex-col flex items-center justify-center p-8 bg-background">
+      <main className="size-full gap-6 flex-col flex items-center justify-center p-0 sm:p-8 bg-background">
         <div className="terminal-animate-in">
           <Card className="w-full max-w-md">
             <CardHeader>
@@ -116,7 +116,7 @@ export function Main() {
   // Show loading state while checking for existing data
   if (isLoadingExisting && stage === "upload") {
     return (
-      <main className="size-full gap-6 flex-col flex items-center justify-center p-8 bg-background">
+      <main className="size-full gap-6 flex-col flex items-center justify-center p-0 sm:p-8 bg-background">
         <div className="terminal-animate-in">
           <Card>
             <CardContent className="pt-6">
@@ -351,8 +351,8 @@ export function Main() {
   const shouldShowScheduleTable =
     hasAnyScheduleData || data.extractionStatus === "extracting";
 
-  return (
-    <main className="size-full gap-6 flex-col flex items-center p-8 bg-background min-h-screen">
+      return (
+      <main className="size-full gap-6 flex-col flex items-center p-0 sm:p-8 bg-background min-h-screen">
       {/* Preview Mode Indicator */}
       {isPreviewMode && (
         <div className="w-full max-w-6xl mb-4">
