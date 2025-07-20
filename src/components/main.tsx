@@ -15,6 +15,9 @@ import { CheckCircle, Loader2, XCircle, Users, Database, Terminal } from "lucide
 import { useQueryClient } from "@tanstack/react-query";
 import { ScheduleTabs } from "./schedule-tabs/schedule-tabs";
 
+// Check if we're in preview mode on the client side
+const isPreviewMode = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+
 export function Main() {
   const [stage, setStage] = useState<"upload" | "generating" | "results">(
     "upload"
@@ -52,17 +55,23 @@ export function Main() {
   }, [stage, data.initialValidationStatus, data.initialValidationResult]);
 
   const handleStartGeneration = async () => {
-    if (!files?.[0] || !session?.user?.id) return;
+    if (!files?.[0]) return;
+    
+    // In preview mode, use a mock user ID
+    const userId = isPreviewMode ? "preview-user" : session?.user?.id;
+    if (!userId) return;
 
     setStage("generating");
     reset(); // Clear any previous errors
-    await startGeneration(files[0], session.user.id);
+    await startGeneration(files[0], userId);
 
-    // Invalidate and refetch schedule data after generation
-    await queryClient.invalidateQueries({
-      queryKey: ["schedule", session.user.id],
-    });
-    await refetchSchedule();
+    // Only invalidate and refetch if we have a real session
+    if (!isPreviewMode && session?.user?.id) {
+      await queryClient.invalidateQueries({
+        queryKey: ["schedule", session.user.id],
+      });
+      await refetchSchedule();
+    }
 
     setStage("results");
     setIsUserInitiatedReset(false); // Reset flag after successful upload
@@ -75,8 +84,8 @@ export function Main() {
     reset();
   };
 
-  // Show login message if not authenticated
-  if (!session?.user) {
+  // Show login message if not authenticated (unless in preview mode)
+  if (!isPreviewMode && !session?.user) {
     return (
       <main className="size-full gap-6 flex-col flex items-center justify-center p-8 bg-background">
         <div className="terminal-animate-in">
@@ -344,6 +353,22 @@ export function Main() {
 
   return (
     <main className="size-full gap-6 flex-col flex items-center p-8 bg-background min-h-screen">
+      {/* Preview Mode Indicator */}
+      {isPreviewMode && (
+        <div className="w-full max-w-6xl mb-4">
+          <Card className="border-primary bg-primary/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-primary" />
+                <span className="text-sm font-mono text-primary">
+                  PREVIEW MODE - Authentication bypassed, data will not be saved
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {stage === "upload" && (
         <div className="w-full max-w-md space-y-4 terminal-animate-in">
           {/* Error Display */}
@@ -479,6 +504,12 @@ export function Main() {
                       Saved Successfully
                     </>
                   )}
+                  {data.databaseStatus === "skipped" && (
+                    <>
+                      <Terminal className="h-4 w-4 text-primary" />
+                      Database Skipped (Preview Mode)
+                    </>
+                  )}
                   {data.databaseStatus === "error" && (
                     <>
                       <XCircle className="h-4 w-4 text-destructive" />
@@ -495,6 +526,8 @@ export function Main() {
                       "Saving your schedule..."}
                     {data.databaseStatus === "complete" &&
                       "Your schedule has been saved!"}
+                    {data.databaseStatus === "skipped" &&
+                      "Database operations skipped in preview mode"}
                     {data.databaseStatus === "error" &&
                       "Failed to save schedule"}
                   </span>
