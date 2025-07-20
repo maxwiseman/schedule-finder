@@ -150,12 +150,12 @@ export function ClassmatesView({
     const periodNames = ["1st", "2nd", "3rd", "4th"];
     const dayColor =
       dayType === "red"
-        ? "text-red-600"
+        ? "text-red-400"
         : dayType === "blue"
-        ? "text-blue-600"
-        : "text-gray-600";
+        ? "text-blue-400"
+        : "text-muted-foreground";
     return (
-      <span>
+      <span className="font-mono uppercase tracking-wide">
         {periodNames[period - 1]} •{" "}
         <span className={dayColor}>
           {dayType === "both" ? "Both" : dayType} day
@@ -165,7 +165,7 @@ export function ClassmatesView({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 terminal-animate-in">
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -178,7 +178,7 @@ export function ClassmatesView({
       </div>
 
       {/* Results count */}
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground font-mono terminal-prompt">
         {filteredClassmates.length} of {allClassmates.length} classmates
         {searchTerm && ` matching "${searchTerm}"`}
       </div>
@@ -188,7 +188,7 @@ export function ClassmatesView({
         {filteredClassmates.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-muted-foreground terminal-list-item">
                 {searchTerm
                   ? "No classmates match your search."
                   : "No classmates found."}
@@ -196,16 +196,16 @@ export function ClassmatesView({
             </CardContent>
           </Card>
         ) : (
-          filteredClassmates.map((classmate) => (
-            <Card key={classmate.userId}>
+          filteredClassmates.map((classmate, index) => (
+            <Card key={classmate.userId} className="terminal-slide-in" style={{ animationDelay: `${index * 0.05}s` }}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{classmate.userName}</CardTitle>
-                <div className="text-sm text-muted-foreground">
+                <CardTitle className="text-lg terminal-header">{classmate.userName}</CardTitle>
+                <div className="text-sm text-muted-foreground font-mono">
                   {classmate.userEmail}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span className="text-sm font-medium">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium font-mono uppercase tracking-wide">
                     {classmate.sharedClasses.length} shared class
                     {classmate.sharedClasses.length !== 1 ? "es" : ""}
                   </span>
@@ -216,18 +216,19 @@ export function ClassmatesView({
                   {classmate.sharedClasses.map((sharedClass, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-muted/30 rounded-md"
+                      className="flex items-center justify-between p-3 bg-muted/30 border border-border terminal-slide-in"
+                      style={{ animationDelay: `${index * 0.02}s` }}
                     >
                       <div>
-                        <div className="font-medium text-sm">
+                        <div className="font-medium text-sm terminal-header">
                           {sharedClass.courseName}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground font-mono">
                           {sharedClass.teacherName}
                           {sharedClass.roomNumber &&
                             ` • ${sharedClass.roomNumber}`}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 w-fit mt-1">
                           {sharedClass.courseCode}
                         </div>
                       </div>

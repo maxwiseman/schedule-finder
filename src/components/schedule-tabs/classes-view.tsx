@@ -121,12 +121,12 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
     const periodNames = ["1st", "2nd", "3rd", "4th"];
     const dayColor =
       dayType === "red"
-        ? "text-red-600"
+        ? "text-red-400"
         : dayType === "blue"
-        ? "text-blue-600"
-        : "text-gray-600";
+        ? "text-blue-400"
+        : "text-muted-foreground";
     return (
-      <span>
+      <span className="font-mono uppercase tracking-wide">
         {periodNames[period - 1]} •{" "}
         <span className={dayColor}>
           {dayType === "both" ? "Both" : dayType} day
@@ -136,7 +136,7 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 terminal-animate-in">
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -149,7 +149,7 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
       </div>
 
       {/* Results count */}
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground font-mono terminal-prompt">
         {filteredClasses.length} of {allClasses.length} classes
         {searchTerm && ` matching "${searchTerm}"`}
       </div>
@@ -159,7 +159,7 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
         {filteredClasses.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-muted-foreground terminal-list-item">
                 {searchTerm
                   ? "No classes match your search."
                   : "No classes found."}
@@ -168,12 +168,12 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
           </Card>
         ) : (
           filteredClasses.map((classInfo, index) => (
-            <Card key={index}>
+            <Card key={index} className="terminal-slide-in" style={{ animationDelay: `${index * 0.05}s` }}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg terminal-header">
                   {classInfo.courseName}
                 </CardTitle>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground font-mono">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {getPeriodLabel(classInfo.period, classInfo.dayType)}
@@ -186,20 +186,20 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
                     </div>
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground font-mono bg-muted/30 px-2 py-1 w-fit">
                   {classInfo.courseCode}
                 </div>
               </CardHeader>
               <CardContent>
                 {classInfo.students.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground terminal-list-item">
                     No other students in this class
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <Users className="h-4 w-4" />
-                      <span className="text-sm font-medium">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium font-mono uppercase tracking-wide">
                         {classInfo.students.length} classmate
                         {classInfo.students.length !== 1 ? "s" : ""}
                       </span>
@@ -208,13 +208,13 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
                       {classInfo.students.map((student) => (
                         <div
                           key={student.userId}
-                          className="flex items-center justify-between p-2 bg-muted/30 rounded-md"
+                          className="flex items-center justify-between p-2 bg-muted/30 border border-border terminal-slide-in"
                         >
                           <div>
-                            <div className="font-medium text-sm">
+                            <div className="font-medium text-sm font-mono terminal-list-item">
                               {student.userName}
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground font-mono">
                               {student.userEmail}
                             </div>
                           </div>

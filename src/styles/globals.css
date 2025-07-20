@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-	--font-sans: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+	--font-sans: var(--font-jetbrains-mono), 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 @theme inline {
@@ -93,13 +93,11 @@
 }
 
 @layer base {
-  * {
+  	* {
     @apply border-border outline-ring/50;
-		border-radius: 0 !important;
 	}
   body {
-    @apply bg-background text-foreground;
-		font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    @apply bg-background text-foreground font-sans;
 	}
 	
 	/* Terminal-style scrollbars */
@@ -176,7 +174,7 @@
 }
 
 .terminal-text {
-	font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+	font-family: var(--font-jetbrains-mono), 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 .terminal-prompt::before {
