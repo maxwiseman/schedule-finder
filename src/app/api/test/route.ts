@@ -1,14 +1,19 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, streamObject, generateObject } from "ai";
+import { generateObject } from "ai";
 import { z } from "zod";
 import { db } from "@/server/db";
-import { schedule, course, enrollment } from "@/server/db/schema";
+import { schedule, course, enrollment, user } from "@/server/db/schema";
 import { eq, and, or } from "drizzle-orm";
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+// Block access in production
+function checkProductionAccess() {
+  if (process.env.VERCEL_ENV === "production") {
+    return new Response("Not Found", { status: 404 });
+  }
+  return null;
+}
 
-// Schema for the JSON data structure (adjust this to your needs)
+// Schema for the JSON data structure
 const PeriodSchema = z.object({
   redDay: z
     .object({
@@ -27,6 +32,7 @@ const PeriodSchema = z.object({
     })
     .nullable(),
 });
+
 const DataSchema = z.object({
   firstPeriod: PeriodSchema,
   secondPeriod: PeriodSchema,
@@ -38,7 +44,65 @@ const DataSchema = z.object({
   }),
 });
 
-// Helper function to save schedule data to database
+// Generate a random fake user
+async function createRandomTestUser() {
+  const adjectives = [
+    "Cool",
+    "Smart",
+    "Brave",
+    "Quick",
+    "Happy",
+    "Clever",
+    "Swift",
+    "Bright",
+    "Kind",
+    "Bold",
+  ];
+  const animals = [
+    "Tiger",
+    "Eagle",
+    "Dolphin",
+    "Wolf",
+    "Fox",
+    "Bear",
+    "Hawk",
+    "Lion",
+    "Owl",
+    "Shark",
+  ];
+
+  const randomAdjective =
+    adjectives[Math.floor(Math.random() * adjectives.length)];
+  const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+  const randomNumber = Math.floor(Math.random() * 1000);
+
+  const username = `${randomAdjective}${randomAnimal}${randomNumber}`;
+  const userId = `test-user-${Date.now()}-${Math.random()
+    .toString(36)
+    .substr(2, 9)}`;
+  const email = `${username.toLowerCase()}@test.example.com`;
+
+  try {
+    const [newUser] = await db
+      .insert(user)
+      .values({
+        id: userId,
+        name: username,
+        email: email,
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    return newUser;
+  } catch (error) {
+    console.error("Error creating test user:", error);
+    throw error;
+  }
+}
+
+// Helper function to save schedule data to database (same as generate route)
 async function saveScheduleToDatabase(
   userId: string,
   scheduleData: z.infer<typeof DataSchema>
@@ -138,7 +202,6 @@ async function saveScheduleToDatabase(
 
       // Check course code compatibility
       if (newCourse.courseCode && normalizedExisting.courseCode) {
-        // Both have course codes - they must match
         if (newCourse.courseCode !== normalizedExisting.courseCode) {
           return false;
         }
@@ -146,16 +209,10 @@ async function saveScheduleToDatabase(
 
       // Check room number compatibility
       if (newCourse.roomNumber && normalizedExisting.roomNumber) {
-        // Both have room numbers - they must match
         if (newCourse.roomNumber !== normalizedExisting.roomNumber) {
           return false;
         }
       }
-
-      // If we get here, either:
-      // 1. Course codes match (or one is missing)
-      // 2. Room numbers match (or one is missing)
-      // 3. At least one field matches and no conflicts
 
       // Check if at least one field actually matches
       const courseCodeMatches = !!(
@@ -256,7 +313,7 @@ async function saveScheduleToDatabase(
         scheduleId: newSchedule.id,
         courseId: advisoryCourse.id,
         period: 5,
-        dayType: "both", // Advisory is the same for both days
+        dayType: "both",
       });
     }
 
@@ -268,17 +325,16 @@ async function saveScheduleToDatabase(
 }
 
 export async function POST(req: Request) {
+  // Block access in production
+  const productionCheck = checkProductionAccess();
+  if (productionCheck) return productionCheck;
+
   try {
     const formData = await req.formData();
     const image = formData.get("image") as File;
-    const userId = formData.get("userId") as string; // We'll need to pass this from the frontend
 
     if (!image) {
-      return new Response("No image provided", { status: 400 });
-    }
-
-    if (!userId) {
-      return new Response("User not authenticated", { status: 401 });
+      return Response.json({ error: "No image provided" }, { status: 400 });
     }
 
     // Convert image to base64
@@ -286,168 +342,112 @@ export async function POST(req: Request) {
     const base64 = Buffer.from(bytes).toString("base64");
     const imageUrl = `data:${image.type};base64,${base64}`;
 
-    // Create a streaming response
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          // Step 1: Initial validation
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({ type: "initial-validation", data: "started" }) +
-                "\n"
-            )
-          );
-
-          const initialValidation = await generateObject({
-            model: openai("gpt-4.1-mini"),
-            schema: z.object({
-              isValid: z.boolean(),
-              confidence: z.number(),
-              issues: z.array(z.string()),
-            }),
-            messages: [
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: "Determine whether this image contains a valid schedule for a student. The image is still acceptable even if it's not cropped exactly to the schedule. Images may contain extraneous information, but as long as the schedule is visible, it's acceptable. The schedule will look like a table with rows and two columns.",
-                  },
-                  { type: "image", image: imageUrl },
-                ],
-              },
-            ],
-          });
-
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({
-                type: "initial-validation",
-                data: "complete",
-                result: initialValidation.object,
-              }) + "\n"
-            )
-          );
-
-          // Stop processing if initial validation fails
-          if (!initialValidation.object.isValid) {
-            controller.enqueue(
-              new TextEncoder().encode(
-                JSON.stringify({
-                  type: "error",
-                  data: "Image does not contain a valid schedule",
-                }) + "\n"
-              )
-            );
-            controller.close();
-            return;
-          }
-
-          // Step 2: Data extraction
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({ type: "data-extraction", data: "started" }) +
-                "\n"
-            )
-          );
-
-          const jsonResult = streamObject({
-            model: openai("gpt-4.1-mini"),
-            schema: DataSchema,
-            messages: [
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: "This image contains a schedule for a student. Extract the schedule into a JSON object. If a period has no class scheduled (free period), set that day to null. For example, if red day period 1 has no class, set redDay to null for that period.",
-                  },
-                  { type: "image", image: imageUrl },
-                ],
-              },
-            ],
-          });
-
-          for await (const partialObject of jsonResult.partialObjectStream) {
-            controller.enqueue(
-              new TextEncoder().encode(
-                JSON.stringify({ type: "json_partial", data: partialObject }) +
-                  "\n"
-              )
-            );
-          }
-
-          const finalJsonData = await jsonResult.object;
-
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({
-                type: "data-extraction",
-                data: "complete",
-                result: finalJsonData,
-              }) + "\n"
-            )
-          );
-
-          // Step 3: Save to database
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({ type: "database", data: "saving" }) + "\n"
-            )
-          );
-
-          try {
-            const savedSchedule = await saveScheduleToDatabase(
-              userId,
-              finalJsonData
-            );
-
-            controller.enqueue(
-              new TextEncoder().encode(
-                JSON.stringify({
-                  type: "database",
-                  data: "complete",
-                  scheduleId: savedSchedule.id,
-                }) + "\n"
-              )
-            );
-          } catch (dbError) {
-            controller.enqueue(
-              new TextEncoder().encode(
-                JSON.stringify({
-                  type: "database",
-                  data: "error",
-                  error:
-                    dbError instanceof Error
-                      ? dbError.message
-                      : "Database error",
-                }) + "\n"
-              )
-            );
-          }
-
-          controller.close();
-        } catch (error) {
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({
-                type: "error",
-                data: error instanceof Error ? error.message : "Unknown error",
-              }) + "\n"
-            )
-          );
-          controller.close();
-        }
-      },
+    // Create a random test user first
+    console.log("Creating random test user...");
+    const testUser = await createRandomTestUser();
+    if (!testUser) {
+      throw new Error("Failed to create test user");
+    }
+    console.log("Created test user:", {
+      id: testUser.id,
+      name: testUser.name,
+      email: testUser.email,
     });
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/plain",
-        "Transfer-Encoding": "chunked",
-      },
+    console.log("Starting image processing...");
+
+    // Step 1: Initial validation
+    console.log("Running initial validation...");
+    const initialValidation = await generateObject({
+      model: openai("gpt-4.1-mini"),
+      schema: z.object({
+        isValid: z.boolean(),
+        confidence: z.number(),
+        issues: z.array(z.string()),
+      }),
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Determine whether this image contains a valid schedule for a student. The image is still acceptable even if it's not cropped exactly to the schedule. Images may contain extraneous information, but as long as the schedule is visible, it's acceptable. The schedule will look like a table with rows and two columns.",
+            },
+            { type: "image", image: imageUrl },
+          ],
+        },
+      ],
+    });
+
+    console.log("Initial validation result:", initialValidation.object);
+
+    // Stop processing if initial validation fails
+    if (!initialValidation.object.isValid) {
+      return Response.json(
+        {
+          initialValidation: initialValidation.object,
+          testUser: {
+            id: testUser.id,
+            name: testUser.name,
+            email: testUser.email,
+          },
+          error: "Image does not contain a valid schedule",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Step 2: Data extraction
+    console.log("Extracting schedule data...");
+    const extractionResult = await generateObject({
+      model: openai("gpt-4.1-mini"),
+      schema: DataSchema,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "This image contains a schedule for a student. Extract the schedule into a JSON object. If a period has no class scheduled (free period), set that day to null. For example, if red day period 1 has no class, set redDay to null for that period.",
+            },
+            { type: "image", image: imageUrl },
+          ],
+        },
+      ],
+    });
+
+    console.log("Extraction result:", extractionResult.object);
+
+    let scheduleId = null;
+    let databaseError = null;
+
+    // Step 3: Save to database
+    try {
+      console.log("Saving to database...");
+      const savedSchedule = await saveScheduleToDatabase(
+        testUser.id,
+        extractionResult.object
+      );
+      scheduleId = savedSchedule.id;
+      console.log("Saved to database with ID:", scheduleId);
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      databaseError =
+        dbError instanceof Error ? dbError.message : "Database error";
+    }
+
+    return Response.json({
+      initialValidation: initialValidation.object,
+      extractedData: extractionResult.object,
+      scheduleId,
+      databaseError,
+      testUser: { id: testUser.id, name: testUser.name, email: testUser.email },
     });
   } catch (error) {
-    return new Response("Error processing request", { status: 500 });
+    console.error("Error processing request:", error);
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }
