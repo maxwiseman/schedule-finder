@@ -415,10 +415,10 @@ export function Main() {
       )}
 
       {stage === "upload" && (
-        <div className="w-full max-w-sm space-y-4 terminal-animate-in">
+        <div className="w-full h-full flex flex-col items-center justify-center">
           {/* Error Display */}
           {data.error && (
-            <Card className="border-destructive">
+            <Card className="border-destructive max-w-sm terminal-animate-in">
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2">
                   <XCircle className="h-4 w-4" />
@@ -436,7 +436,7 @@ export function Main() {
             </Card>
           )}
 
-          <Card>
+          <Card className="max-w-sm terminal-animate-in">
             <CardHeader>
               <CardTitle>Upload Your Schedule</CardTitle>
             </CardHeader>

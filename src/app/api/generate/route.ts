@@ -45,6 +45,15 @@ async function saveScheduleToDatabase(
   scheduleData: z.infer<typeof DataSchema>
 ) {
   try {
+    // Delete existing schedules and enrollments for this user
+    const existingSchedules = await db
+      .select()
+      .from(schedule)
+      .where(eq(schedule.userId, userId));
+    for (const sched of existingSchedules) {
+      await db.delete(enrollment).where(eq(enrollment.scheduleId, sched.id));
+      await db.delete(schedule).where(eq(schedule.id, sched.id));
+    }
     // Create schedule record
     const scheduleResult = await db
       .insert(schedule)
