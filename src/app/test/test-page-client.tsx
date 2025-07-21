@@ -50,8 +50,8 @@ export default function TestPageClient() {
   };
 
   return (
-    <div className="container mx-auto p-8 max-w-4xl">
-      <Card className="mb-6">
+    <div className="container mx-auto p-8 max-w-4xl bg-background min-h-screen">
+      <Card className="mb-6 terminal-animate-in">
         <CardHeader>
           <CardTitle>Schedule Test Page</CardTitle>
         </CardHeader>
@@ -59,7 +59,7 @@ export default function TestPageClient() {
           <div>
             <label
               htmlFor="image-upload"
-              className="block text-sm font-medium mb-2"
+              className="block text-sm font-medium font-mono mb-2 terminal-prompt"
             >
               Upload Schedule Image
             </label>
@@ -68,7 +68,7 @@ export default function TestPageClient() {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-muted-foreground font-mono file:mr-4 file:py-2 file:px-4 file:border file:border-border file:text-sm file:font-semibold file:bg-muted file:text-foreground hover:file:bg-muted/80 file:font-mono file:uppercase file:tracking-wide"
             />
           </div>
 
@@ -80,14 +80,17 @@ export default function TestPageClient() {
             {loading ? "Processing..." : "Process Schedule"}
           </Button>
 
-          <div className="text-sm text-gray-600">
-            <p>
+          <div className="text-sm text-muted-foreground font-mono">
+            <p className="terminal-list-item">
               This will create a random fake user and process the schedule under
               that user.
             </p>
-            <p>
+            <p className="terminal-list-item">
               Check{" "}
-              <a href="/test/db" className="text-blue-600 hover:underline">
+              <a
+                href="/test/db"
+                className="text-primary hover:underline font-bold"
+              >
                 /test/db
               </a>{" "}
               to see the database contents.
@@ -97,18 +100,18 @@ export default function TestPageClient() {
       </Card>
 
       {error && (
-        <Card className="mb-6 border-red-200">
+        <Card className="mb-6 border-destructive terminal-slide-in">
           <CardHeader>
-            <CardTitle className="text-red-600">Error</CardTitle>
+            <CardTitle className="text-destructive">Error</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-600">{error}</p>
+            <p className="text-destructive font-mono">{error}</p>
           </CardContent>
         </Card>
       )}
 
       {result && (
-        <Card>
+        <Card className="terminal-slide-in">
           <CardHeader>
             <CardTitle>Results</CardTitle>
           </CardHeader>
@@ -116,18 +119,20 @@ export default function TestPageClient() {
             {/* Created User */}
             {result.testUser && (
               <div>
-                <h3 className="font-semibold mb-2">Created Test User</h3>
-                <div className="bg-blue-50 p-3 rounded-md">
-                  <p>
-                    <span className="font-medium">Name:</span>{" "}
+                <h3 className="font-semibold mb-2 font-mono uppercase tracking-wide terminal-header">
+                  Created Test User
+                </h3>
+                <div className="bg-muted/50 p-3 border border-border">
+                  <p className="font-mono">
+                    <span className="font-medium text-primary">Name:</span>{" "}
                     {result.testUser.name}
                   </p>
-                  <p>
-                    <span className="font-medium">Email:</span>{" "}
+                  <p className="font-mono">
+                    <span className="font-medium text-primary">Email:</span>{" "}
                     {result.testUser.email}
                   </p>
-                  <p className="text-xs text-gray-600">
-                    <span className="font-medium">ID:</span>{" "}
+                  <p className="text-xs text-muted-foreground font-mono">
+                    <span className="font-medium text-primary">ID:</span>{" "}
                     {result.testUser.id}
                   </p>
                 </div>
@@ -136,19 +141,28 @@ export default function TestPageClient() {
 
             {/* Initial Validation */}
             <div>
-              <h3 className="font-semibold mb-2">Initial Validation</h3>
-              <p>Valid: {result.initialValidation?.isValid ? "Yes" : "No"}</p>
-              <p>
+              <h3 className="font-semibold mb-2 font-mono uppercase tracking-wide terminal-header">
+                Initial Validation
+              </h3>
+              <p className="font-mono">
+                Valid: {result.initialValidation?.isValid ? "Yes" : "No"}
+              </p>
+              <p className="font-mono">
                 Confidence:{" "}
                 {Math.round((result.initialValidation?.confidence || 0) * 100)}%
               </p>
               {result.initialValidation?.issues?.length > 0 && (
                 <div>
-                  <p className="font-medium">Issues:</p>
-                  <ul className="list-disc list-inside">
+                  <p className="font-medium font-mono text-primary">Issues:</p>
+                  <ul className="list-none">
                     {result.initialValidation.issues.map(
                       (issue: string, idx: number) => (
-                        <li key={idx}>{issue}</li>
+                        <li
+                          key={idx}
+                          className="font-mono text-muted-foreground terminal-list-item"
+                        >
+                          {issue}
+                        </li>
                       )
                     )}
                   </ul>
@@ -159,115 +173,130 @@ export default function TestPageClient() {
             {/* Extracted Data */}
             {result.extractedData && (
               <div>
-                <h3 className="font-semibold mb-2">Extracted Schedule</h3>
-                <div className="border rounded-md p-4">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2">Period</th>
-                        <th className="text-left p-2 text-red-600">Red Day</th>
-                        <th className="text-left p-2 text-blue-600">
-                          Blue Day
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        "firstPeriod",
-                        "secondPeriod",
-                        "thirdPeriod",
-                        "fourthPeriod",
-                      ].map((period, idx) => {
-                        const periodData = result.extractedData[period];
-                        return (
-                          <tr key={period} className="border-b">
-                            <td className="p-2 font-medium">{idx + 1}</td>
-                            <td className="p-2">
-                              {periodData?.redDay ? (
-                                <div>
-                                  <div className="font-medium">
-                                    {periodData.redDay.courseName}
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    {periodData.redDay.teacherName}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {periodData.redDay.courseCode}
-                                    {periodData.redDay.roomNumber &&
-                                      ` • ${periodData.redDay.roomNumber}`}
-                                  </div>
+                <h3 className="font-semibold mb-2 font-mono uppercase tracking-wide terminal-header">
+                  Extracted Schedule
+                </h3>
+                <table className="w-full p-8 border font-mono">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-2 uppercase tracking-wide">
+                        Period
+                      </th>
+                      <th className="text-left p-2 text-red-400 uppercase tracking-wide">
+                        Red Day
+                      </th>
+                      <th className="text-left p-2 text-blue-400 uppercase tracking-wide">
+                        Blue Day
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      "firstPeriod",
+                      "secondPeriod",
+                      "thirdPeriod",
+                      "fourthPeriod",
+                    ].map((period, idx) => {
+                      const periodData = result.extractedData[period];
+                      return (
+                        <tr key={period} className="border-b border-border">
+                          <td className="p-2 font-medium">{idx + 1}</td>
+                          <td className="p-2">
+                            {periodData?.redDay ? (
+                              <div>
+                                <div className="font-medium">
+                                  {periodData.redDay.courseName}
                                 </div>
-                              ) : periodData?.redDay === null ? (
-                                <div className="text-gray-600 italic">
-                                  <div className="font-medium">Free Period</div>
-                                  <div className="text-xs">
-                                    No class scheduled
-                                  </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {periodData.redDay.teacherName}
                                 </div>
-                              ) : (
-                                <span className="text-gray-400">No data</span>
-                              )}
-                            </td>
-                            <td className="p-2">
-                              {periodData?.blueDay ? (
-                                <div>
-                                  <div className="font-medium">
-                                    {periodData.blueDay.courseName}
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    {periodData.blueDay.teacherName}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {periodData.blueDay.courseCode}
-                                    {periodData.blueDay.roomNumber &&
-                                      ` • ${periodData.blueDay.roomNumber}`}
-                                  </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {periodData.redDay.courseCode}
+                                  {periodData.redDay.roomNumber &&
+                                    ` • ${periodData.redDay.roomNumber}`}
                                 </div>
-                              ) : periodData?.blueDay === null ? (
-                                <div className="text-gray-600 italic">
-                                  <div className="font-medium">Free Period</div>
-                                  <div className="text-xs">
-                                    No class scheduled
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="text-gray-400">No data</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {result.extractedData.advisory && (
-                        <tr className="border-b">
-                          <td className="p-2 font-medium">Advisory</td>
-                          <td className="p-2 text-center" colSpan={2}>
-                            <div>
-                              <div className="font-medium">
-                                {result.extractedData.advisory.teacherName}
                               </div>
-                              {result.extractedData.advisory.roomNumber && (
-                                <div className="text-xs text-gray-500">
-                                  {result.extractedData.advisory.roomNumber}
+                            ) : periodData?.redDay === null ? (
+                              <div className="text-muted-foreground italic">
+                                <div className="font-medium">Free Period</div>
+                                <div className="text-xs">
+                                  No class scheduled
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                No data
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {periodData?.blueDay ? (
+                              <div>
+                                <div className="font-medium">
+                                  {periodData.blueDay.courseName}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {periodData.blueDay.teacherName}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {periodData.blueDay.courseCode}
+                                  {periodData.blueDay.roomNumber &&
+                                    ` • ${periodData.blueDay.roomNumber}`}
+                                </div>
+                              </div>
+                            ) : periodData?.blueDay === null ? (
+                              <div className="text-muted-foreground italic">
+                                <div className="font-medium">Free Period</div>
+                                <div className="text-xs">
+                                  No class scheduled
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                No data
+                              </span>
+                            )}
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      );
+                    })}
+                    {result.extractedData.advisory && (
+                      <tr className="border-b border-border">
+                        <td className="p-2 font-medium">Advisory</td>
+                        <td className="p-2 text-center" colSpan={2}>
+                          <div>
+                            <div className="font-medium">
+                              {result.extractedData.advisory.teacherName}
+                            </div>
+                            {result.extractedData.advisory.roomNumber && (
+                              <div className="text-xs text-muted-foreground">
+                                {result.extractedData.advisory.roomNumber}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
 
             {/* Database Result */}
             {result.scheduleId && (
               <div>
-                <h3 className="font-semibold mb-2">Database</h3>
-                <p>Schedule saved with ID: {result.scheduleId}</p>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold mb-2 font-mono uppercase tracking-wide terminal-header">
+                  Database
+                </h3>
+                <p className="font-mono">
+                  Schedule saved with ID: {result.scheduleId}
+                </p>
+                <p className="text-sm text-muted-foreground font-mono">
                   View all data at{" "}
-                  <a href="/test/db" className="text-blue-600 hover:underline">
+                  <a
+                    href="/test/db"
+                    className="text-primary hover:underline font-bold"
+                  >
                     /test/db
                   </a>
                 </p>
@@ -276,19 +305,21 @@ export default function TestPageClient() {
 
             {result.databaseError && (
               <div>
-                <h3 className="font-semibold mb-2 text-red-600">
+                <h3 className="font-semibold mb-2 text-destructive font-mono uppercase tracking-wide">
                   Database Error
                 </h3>
-                <p className="text-red-600">{result.databaseError}</p>
+                <p className="text-destructive font-mono">
+                  {result.databaseError}
+                </p>
               </div>
             )}
 
             {/* Raw JSON */}
             <details className="mt-4">
-              <summary className="font-semibold cursor-pointer">
+              <summary className="font-semibold cursor-pointer font-mono uppercase tracking-wide terminal-prompt">
                 Raw JSON Data
               </summary>
-              <pre className="mt-2 p-4 bg-gray-100 rounded-md text-sm overflow-auto">
+              <pre className="mt-2 p-4 bg-muted border border-border text-sm overflow-auto font-mono">
                 {JSON.stringify(result, null, 2)}
               </pre>
             </details>

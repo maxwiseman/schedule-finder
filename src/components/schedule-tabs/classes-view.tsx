@@ -70,11 +70,52 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
     ];
 
     periods.forEach(({ data, period }) => {
-      if (data?.redDay && data.redDay !== null) {
-        addClass(data.redDay, period, "red");
+      // Handle red day
+      if (data?.redDay !== undefined) {
+        if (data.redDay === null) {
+          // Add free period
+          const freeKey = `FREE-FREE PERIOD-${period}-red`;
+          const freeStudents = classmates[freeKey] || [];
+
+          classes.push({
+            courseCode: "FREE",
+            courseName: "Free Period",
+            teacherName: "No class scheduled",
+            period,
+            dayType: "red",
+            students: freeStudents.map((s) => ({
+              userId: s.userId,
+              userName: s.userName,
+              userEmail: s.userEmail,
+            })),
+          });
+        } else {
+          addClass(data.redDay, period, "red");
+        }
       }
-      if (data?.blueDay && data.blueDay !== null) {
-        addClass(data.blueDay, period, "blue");
+
+      // Handle blue day
+      if (data?.blueDay !== undefined) {
+        if (data.blueDay === null) {
+          // Add free period
+          const freeKey = `FREE-FREE PERIOD-${period}-blue`;
+          const freeStudents = classmates[freeKey] || [];
+
+          classes.push({
+            courseCode: "FREE",
+            courseName: "Free Period",
+            teacherName: "No class scheduled",
+            period,
+            dayType: "blue",
+            students: freeStudents.map((s) => ({
+              userId: s.userId,
+              userName: s.userName,
+              userEmail: s.userEmail,
+            })),
+          });
+        } else {
+          addClass(data.blueDay, period, "blue");
+        }
       }
     });
 
@@ -168,10 +209,20 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
           </Card>
         ) : (
           filteredClasses.map((classInfo, index) => (
-            <Card key={index} className="terminal-slide-in" style={{ animationDelay: `${index * 0.05}s` }}>
+            <Card
+              key={index}
+              className="terminal-slide-in"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg terminal-header">
-                  {classInfo.courseName}
+                  {classInfo.courseCode === "FREE" ? (
+                    <span className="text-muted-foreground italic">
+                      [FREE PERIOD]
+                    </span>
+                  ) : (
+                    classInfo.courseName
+                  )}
                 </CardTitle>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground font-mono">
                   <div className="flex items-center gap-1">
@@ -186,9 +237,11 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
                     </div>
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground font-mono bg-muted/30 px-2 py-1 w-fit">
-                  {classInfo.courseCode}
-                </div>
+                {classInfo.courseCode !== "FREE" && (
+                  <div className="text-xs text-muted-foreground font-mono bg-muted/30 px-2 py-1 w-fit">
+                    {classInfo.courseCode}
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 {classInfo.students.length === 0 ? (
@@ -214,7 +267,7 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
                             <div className="font-medium text-sm font-mono terminal-list-item">
                               {student.userName}
                             </div>
-                            <div className="text-xs text-muted-foreground font-mono">
+                            <div className="text-xs text-muted-foreground ml-4 font-mono">
                               {student.userEmail}
                             </div>
                           </div>

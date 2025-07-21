@@ -95,8 +95,8 @@ export default function DbPageClient() {
   };
 
   return (
-    <div className="container mx-auto p-8 max-w-6xl">
-      <Card className="mb-6">
+    <div className="container mx-auto p-8 max-w-6xl bg-background min-h-screen">
+      <Card className="mb-6 terminal-animate-in">
         <CardHeader>
           <CardTitle>Database Test Viewer</CardTitle>
         </CardHeader>
@@ -113,41 +113,99 @@ export default function DbPageClient() {
               Clear All Data
             </Button>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground font-mono terminal-prompt">
             View all database contents for testing purposes.
           </p>
         </CardContent>
       </Card>
 
       {error && (
-        <Card className="mb-6 border-red-200">
+        <Card className="mb-6 border-destructive terminal-slide-in">
           <CardHeader>
-            <CardTitle className="text-red-600">Error</CardTitle>
+            <CardTitle className="text-destructive">Error</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-600">{error}</p>
+            <p className="text-destructive font-mono">{error}</p>
           </CardContent>
         </Card>
       )}
 
       {data && (
         <div className="space-y-6">
+          {/* Summary */}
+          <Card
+            className="terminal-slide-in"
+            style={{ animationDelay: "0.5s" }}
+          >
+            <CardHeader>
+              <CardTitle>Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center border border-border p-4">
+                  <div className="text-2xl font-bold font-mono text-primary">
+                    {data.users.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-mono uppercase tracking-wide">
+                    Users
+                  </div>
+                </div>
+                <div className="text-center border border-border p-4">
+                  <div className="text-2xl font-bold font-mono text-primary">
+                    {data.courses.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-mono uppercase tracking-wide">
+                    Courses
+                  </div>
+                </div>
+                <div className="text-center border border-border p-4">
+                  <div className="text-2xl font-bold font-mono text-primary">
+                    {data.schedules.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-mono uppercase tracking-wide">
+                    Schedules
+                  </div>
+                </div>
+                <div className="text-center border border-border p-4">
+                  <div className="text-2xl font-bold font-mono text-primary">
+                    {data.enrollments.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-mono uppercase tracking-wide">
+                    Enrollments
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Users */}
-          <Card>
+          <Card
+            className="terminal-slide-in"
+            style={{ animationDelay: "0.1s" }}
+          >
             <CardHeader>
               <CardTitle>Users ({data.users.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {data.users.length === 0 ? (
-                <p className="text-gray-500">No users found</p>
+                <p className="text-muted-foreground font-mono terminal-list-item">
+                  No users found
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {data.users.map((user) => (
-                    <div key={user.id} className="border rounded p-3">
-                      <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-gray-600">{user.email}</div>
-                      <div className="text-xs text-gray-500">
-                        ID: {user.id} • Created:{" "}
+                  {data.users.map((user, index) => (
+                    <div
+                      key={user.id}
+                      className="border border-border p-3 terminal-slide-in"
+                      style={{ animationDelay: `${0.05 * index}s` }}
+                    >
+                      <div className="font-medium font-mono">{user.name}</div>
+                      <div className="text-sm text-muted-foreground font-mono">
+                        {user.email}
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        <span className="text-primary">ID:</span> {user.id} •{" "}
+                        <span className="text-primary">Created:</span>{" "}
                         {new Date(user.createdAt).toLocaleString()}
                       </div>
                     </div>
@@ -158,24 +216,44 @@ export default function DbPageClient() {
           </Card>
 
           {/* Courses */}
-          <Card>
+          <Card
+            className="terminal-slide-in"
+            style={{ animationDelay: "0.2s" }}
+          >
             <CardHeader>
               <CardTitle>Courses ({data.courses.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {data.courses.length === 0 ? (
-                <p className="text-gray-500">No courses found</p>
+                <p className="text-muted-foreground font-mono terminal-list-item">
+                  No courses found
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {data.courses.map((course) => (
-                    <div key={course.id} className="border rounded p-3">
-                      <div className="font-medium">{course.courseName}</div>
-                      <div className="text-sm text-gray-600">
-                        Teacher: {course.teacherName}
-                        {course.roomNumber && ` • Room: ${course.roomNumber}`}
+                  {data.courses.map((course, index) => (
+                    <div
+                      key={course.id}
+                      className="border border-border p-3 terminal-slide-in"
+                      style={{ animationDelay: `${0.05 * index}s` }}
+                    >
+                      <div className="font-medium font-mono">
+                        {course.courseName}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Code: {course.courseCode || "N/A"} • ID: {course.id}
+                      <div className="text-sm text-muted-foreground font-mono">
+                        <span className="text-primary">Teacher:</span>{" "}
+                        {course.teacherName}
+                        {course.roomNumber && (
+                          <>
+                            {" "}
+                            • <span className="text-primary">Room:</span>{" "}
+                            {course.roomNumber}
+                          </>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        <span className="text-primary">Code:</span>{" "}
+                        {course.courseCode || "N/A"} •{" "}
+                        <span className="text-primary">ID:</span> {course.id}
                       </div>
                     </div>
                   ))}
@@ -185,25 +263,37 @@ export default function DbPageClient() {
           </Card>
 
           {/* Schedules */}
-          <Card>
+          <Card
+            className="terminal-slide-in"
+            style={{ animationDelay: "0.3s" }}
+          >
             <CardHeader>
               <CardTitle>Schedules ({data.schedules.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {data.schedules.length === 0 ? (
-                <p className="text-gray-500">No schedules found</p>
+                <p className="text-muted-foreground font-mono terminal-list-item">
+                  No schedules found
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {data.schedules.map((schedule) => (
-                    <div key={schedule.id} className="border rounded p-3">
-                      <div className="font-medium">
-                        Schedule ID: {schedule.id}
+                  {data.schedules.map((schedule, index) => (
+                    <div
+                      key={schedule.id}
+                      className="border border-border p-3 terminal-slide-in"
+                      style={{ animationDelay: `${0.05 * index}s` }}
+                    >
+                      <div className="font-medium font-mono">
+                        <span className="text-primary">Schedule ID:</span>{" "}
+                        {schedule.id}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        User: {schedule.user.name} ({schedule.user.email})
+                      <div className="text-sm text-muted-foreground font-mono">
+                        <span className="text-primary">User:</span>{" "}
+                        {schedule.user?.name} ({schedule.user?.email})
                       </div>
-                      <div className="text-xs text-gray-500">
-                        User ID: {schedule.userId}
+                      <div className="text-xs text-muted-foreground font-mono">
+                        <span className="text-primary">User ID:</span>{" "}
+                        {schedule.userId}
                       </div>
                     </div>
                   ))}
@@ -213,69 +303,67 @@ export default function DbPageClient() {
           </Card>
 
           {/* Enrollments */}
-          <Card>
+          <Card
+            className="terminal-slide-in"
+            style={{ animationDelay: "0.4s" }}
+          >
             <CardHeader>
               <CardTitle>Enrollments ({data.enrollments.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {data.enrollments.length === 0 ? (
-                <p className="text-gray-500">No enrollments found</p>
+                <p className="text-muted-foreground font-mono terminal-list-item">
+                  No enrollments found
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {data.enrollments.map((enrollment) => (
-                    <div key={enrollment.id} className="border rounded p-3">
-                      <div className="font-medium">
+                  {data.enrollments.map((enrollment, index) => (
+                    <div
+                      key={enrollment.id}
+                      className="border border-border p-3 terminal-slide-in"
+                      style={{ animationDelay: `${0.05 * index}s` }}
+                    >
+                      <div className="font-medium font-mono">
                         {enrollment.course.courseName}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        Period {enrollment.period} • {enrollment.dayType} day
+                      <div className="text-sm text-muted-foreground font-mono">
+                        <span className="text-primary">Period</span>{" "}
+                        {enrollment.period} •{" "}
+                        <span
+                          className={
+                            enrollment.dayType === "red"
+                              ? "text-red-400"
+                              : enrollment.dayType === "blue"
+                              ? "text-blue-400"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {enrollment.dayType}
+                        </span>{" "}
+                        day
                         <br />
-                        Teacher: {enrollment.course.teacherName}
-                        {enrollment.course.roomNumber &&
-                          ` • Room: ${enrollment.course.roomNumber}`}
+                        <span className="text-primary">Teacher:</span>{" "}
+                        {enrollment.course.teacherName}
+                        {enrollment.course.roomNumber && (
+                          <>
+                            {" "}
+                            • <span className="text-primary">Room:</span>{" "}
+                            {enrollment.course.roomNumber}
+                          </>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Student: {enrollment.schedule.user.name} • Course Code:{" "}
-                        {enrollment.course.courseCode || "N/A"} • Enrollment ID:{" "}
+                      <div className="text-xs text-muted-foreground font-mono">
+                        <span className="text-primary">Student:</span>{" "}
+                        {enrollment?.schedule?.user?.name} •{" "}
+                        <span className="text-primary">Course Code:</span>{" "}
+                        {enrollment.course.courseCode || "N/A"} •{" "}
+                        <span className="text-primary">Enrollment ID:</span>{" "}
                         {enrollment.id}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{data.users.length}</div>
-                  <div className="text-sm text-gray-600">Users</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {data.courses.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Courses</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {data.schedules.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Schedules</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {data.enrollments.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Enrollments</div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>

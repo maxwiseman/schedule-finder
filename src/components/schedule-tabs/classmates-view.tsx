@@ -71,9 +71,9 @@ export function ClassmatesView({
 
       if (!courseData || courseData === null) {
         return {
-          courseName: "Free Period",
+          courseName: "[FREE PERIOD]",
           courseCode: "FREE",
-          teacherName: "FREE PERIOD",
+          teacherName: "No class scheduled",
         };
       }
 
@@ -197,9 +197,15 @@ export function ClassmatesView({
           </Card>
         ) : (
           filteredClassmates.map((classmate, index) => (
-            <Card key={classmate.userId} className="terminal-slide-in" style={{ animationDelay: `${index * 0.05}s` }}>
+            <Card
+              key={classmate.userId}
+              className="terminal-slide-in"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg terminal-header">{classmate.userName}</CardTitle>
+                <CardTitle className="text-lg terminal-header">
+                  {classmate.userName}
+                </CardTitle>
                 <div className="text-sm text-muted-foreground font-mono">
                   {classmate.userEmail}
                 </div>
@@ -221,16 +227,24 @@ export function ClassmatesView({
                     >
                       <div>
                         <div className="font-medium text-sm terminal-header">
-                          {sharedClass.courseName}
+                          {sharedClass.courseCode === "FREE" ? (
+                            <span className="text-muted-foreground italic">
+                              {sharedClass.courseName}
+                            </span>
+                          ) : (
+                            sharedClass.courseName
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground font-mono">
                           {sharedClass.teacherName}
                           {sharedClass.roomNumber &&
                             ` • ${sharedClass.roomNumber}`}
                         </div>
-                        <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 w-fit mt-1">
-                          {sharedClass.courseCode}
-                        </div>
+                        {sharedClass.courseCode !== "FREE" && (
+                          <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 w-fit mt-1">
+                            {sharedClass.courseCode}
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">

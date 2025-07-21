@@ -1,4 +1,9 @@
 import { Users } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ScheduleData } from "@/lib/use-stream-generation";
 
 interface ScheduleViewProps {
@@ -47,7 +52,23 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
             {freeClassmates.length > 0 && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Users className="h-3 w-3" />
-                <span>{freeClassmates.length} also free</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>{freeClassmates.length} also free</span>
+                  </TooltipTrigger>
+                  <TooltipContent className="font-mono">
+                    <div className="space-y-1">
+                      <div className="font-semibold text-xs uppercase tracking-wide">
+                        Also free:
+                      </div>
+                      {freeClassmates.map((classmate, idx) => (
+                        <div key={idx} className="text-xs">
+                          {classmate.userName}
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>
@@ -72,10 +93,26 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
           {courseClassmates.length > 0 && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Users className="h-3 w-3" />
-              <span>
-                {courseClassmates.length} classmate
-                {courseClassmates.length !== 1 ? "s" : ""}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    {courseClassmates.length} classmate
+                    {courseClassmates.length !== 1 ? "s" : ""}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="font-mono">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-xs uppercase tracking-wide">
+                      Classmates:
+                    </div>
+                    {courseClassmates.map((classmate, idx) => (
+                      <div key={idx} className="text-xs">
+                        {classmate.userName}
+                      </div>
+                    ))}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
         </div>
@@ -138,10 +175,26 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
             {advisoryClassmates.length > 0 && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground justify-center">
                 <Users className="h-3 w-3" />
-                <span>
-                  {advisoryClassmates.length} classmate
-                  {advisoryClassmates.length !== 1 ? "s" : ""}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      {advisoryClassmates.length} classmate
+                      {advisoryClassmates.length !== 1 ? "s" : ""}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="font-mono">
+                    <div className="space-y-1">
+                      <div className="font-semibold text-xs uppercase tracking-wide">
+                        Classmates:
+                      </div>
+                      {advisoryClassmates.map((classmate, idx) => (
+                        <div key={idx} className="text-xs">
+                          {classmate.userName}
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>
