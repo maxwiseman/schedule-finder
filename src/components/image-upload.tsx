@@ -15,20 +15,20 @@ export function ImageUpload({
   nextStage: () => void;
 } & HTMLProps<HTMLDivElement>) {
   return (
-    <div className="w-xs flex justify-center items-center gap-4 flex-col terminal-animate-in">
+    <div className="flex justify-center items-center gap-4 flex-col terminal-animate-in">
       <Dropzone
         {...props}
         accept={{ "image/*": [] }}
         onDrop={setFiles}
         onError={console.error}
         src={files}
-        className="terminal-glow hover:border-primary transition-colors"
+        className="hover:border-primary transition-colors"
       >
         <DropzoneEmptyState />
         <DropzoneContent />
       </Dropzone>
       <Button
-        className="w-full terminal-glow"
+        className="w-full"
         disabled={(files?.length ?? 0) <= 0}
         onClick={nextStage}
       >

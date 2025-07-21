@@ -30,7 +30,7 @@ const renderBytes = (bytes: number) => {
 };
 
 const DropzoneContext = createContext<DropzoneContextType | undefined>(
-  undefined,
+  undefined
 );
 
 export type DropzoneProps = Omit<DropzoneOptions, "onDrop"> & {
@@ -39,7 +39,7 @@ export type DropzoneProps = Omit<DropzoneOptions, "onDrop"> & {
   onDrop?: (
     acceptedFiles: File[],
     fileRejections: FileRejection[],
-    event: DropEvent,
+    event: DropEvent
   ) => void;
   children?: ReactNode;
 };
@@ -84,8 +84,9 @@ export const Dropzone = ({
       <Button
         className={cn(
           "relative h-auto w-full flex-col overflow-hidden p-8 font-mono border-dashed",
-          isDragActive && "outline-none ring-2 ring-primary border-primary bg-primary/10",
-          className,
+          isDragActive &&
+            "outline-none ring-2 ring-primary border-primary bg-primary/10",
+          className
         )}
         disabled={disabled}
         type="button"
@@ -135,11 +136,11 @@ export const DropzoneContent = ({
       <div className="flex size-8 items-center justify-center bg-muted text-primary border border-border">
         <UploadIcon size={16} />
       </div>
-      <p className="my-2 w-full truncate font-medium text-sm font-mono terminal-header">
+      <p className="my-2 w-full truncate font-medium text-sm font-mono">
         {src.length > maxLabelItems
           ? `${new Intl.ListFormat("en").format(
-            src.slice(0, maxLabelItems).map((file) => file.name),
-          )} and ${src.length - maxLabelItems} more`
+              src.slice(0, maxLabelItems).map((file) => file.name)
+            )} and ${src.length - maxLabelItems} more`
           : new Intl.ListFormat("en").format(src.map((file) => file.name))}
       </p>
       <p className="w-full text-wrap text-muted-foreground text-xs font-mono terminal-list-item">
@@ -188,14 +189,16 @@ export const DropzoneEmptyState = ({
       <div className="flex size-8 items-center justify-center bg-muted text-primary border border-border">
         <UploadIcon size={16} />
       </div>
-      <p className="my-2 w-full truncate text-wrap font-medium text-sm font-mono terminal-header">
+      <p className="my-2 w-full truncate text-wrap font-medium text-sm font-mono">
         Upload {maxFiles === 1 ? "a file" : "files"}
       </p>
       <p className="w-full truncate text-wrap text-muted-foreground text-xs font-mono terminal-list-item">
         Drag and drop or click to upload
       </p>
       {caption && (
-        <p className="text-wrap text-muted-foreground text-xs font-mono">{caption}.</p>
+        <p className="text-wrap text-muted-foreground text-xs font-mono">
+          {caption}.
+        </p>
       )}
     </div>
   );

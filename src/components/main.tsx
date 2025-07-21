@@ -11,12 +11,22 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Loader2, XCircle, Users, Database, Terminal } from "lucide-react";
+import {
+  CheckCircle,
+  Loader2,
+  XCircle,
+  Users,
+  Database,
+  Terminal,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ScheduleTabs } from "./schedule-tabs/schedule-tabs";
+import { redirect } from "next/navigation";
 
 // Check if we're in preview mode on the client side
-const isPreviewMode = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+const isPreviewMode =
+  typeof window !== "undefined" &&
+  window.location.hostname.includes("vercel.app");
 
 export function Main() {
   const [stage, setStage] = useState<"upload" | "generating" | "results">(
@@ -56,7 +66,7 @@ export function Main() {
 
   const handleStartGeneration = async () => {
     if (!files?.[0]) return;
-    
+
     // In preview mode, use a mock user ID
     const userId = isPreviewMode ? "preview-user" : session?.user?.id;
     if (!userId) return;
@@ -119,10 +129,12 @@ export function Main() {
       <main className="size-full gap-6 flex-col flex items-center justify-center p-0 sm:p-8 bg-background">
         <div className="terminal-animate-in">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="terminal-prompt">Checking for existing schedule...</span>
+                <span className="terminal-prompt">
+                  Checking for existing schedule...
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -154,11 +166,19 @@ export function Main() {
         return isLoading ? (
           <div className="space-y-1 animate-pulse">
             <div className="h-4 bg-muted w-20 terminal-slide-in"></div>
-            <div className="h-3 bg-muted w-24 terminal-slide-in" style={{ animationDelay: '0.1s' }}></div>
-            <div className="h-3 bg-muted w-16 terminal-slide-in" style={{ animationDelay: '0.2s' }}></div>
+            <div
+              className="h-3 bg-muted w-24 terminal-slide-in"
+              style={{ animationDelay: "0.1s" }}
+            ></div>
+            <div
+              className="h-3 bg-muted w-16 terminal-slide-in"
+              style={{ animationDelay: "0.2s" }}
+            ></div>
           </div>
         ) : (
-          <div className="text-muted-foreground text-sm terminal-list-item">No data</div>
+          <div className="text-muted-foreground text-sm terminal-list-item">
+            No data
+          </div>
         );
       }
 
@@ -187,7 +207,10 @@ export function Main() {
                 </div>
                 <div className="space-y-1">
                   {freeClassmates.slice(0, 3).map((classmate, idx) => (
-                    <div key={idx} className="text-xs text-muted-foreground terminal-list-item">
+                    <div
+                      key={idx}
+                      className="text-xs text-muted-foreground terminal-list-item"
+                    >
                       {classmate.userName}
                     </div>
                   ))}
@@ -232,7 +255,10 @@ export function Main() {
               </div>
               <div className="space-y-1">
                 {classmates.slice(0, 3).map((classmate, idx) => (
-                  <div key={idx} className="text-xs text-muted-foreground terminal-list-item">
+                  <div
+                    key={idx}
+                    className="text-xs text-muted-foreground terminal-list-item"
+                  >
                     {classmate.userName}
                   </div>
                 ))}
@@ -248,11 +274,18 @@ export function Main() {
       );
     };
 
-    const rowClass = isLoading ? "border-b border-border terminal-slide-in" : "border-b border-border";
+    const rowClass = isLoading
+      ? "border-b border-border terminal-slide-in"
+      : "border-b border-border";
 
     return (
-      <tr className={rowClass} style={{ animationDelay: `${periodNumber * 0.1}s` }}>
-        <td className="p-3 font-medium font-mono uppercase tracking-wide">{periodName}</td>
+      <tr
+        className={rowClass}
+        style={{ animationDelay: `${periodNumber * 0.1}s` }}
+      >
+        <td className="p-3 font-medium font-mono uppercase tracking-wide">
+          {periodName}
+        </td>
         <td className="p-3">{renderDayContent(period?.redDay, "red")}</td>
         <td className="p-3">{renderDayContent(period?.blueDay, "blue")}</td>
       </tr>
@@ -265,8 +298,13 @@ export function Main() {
   ) => {
     if (isLoading) {
       return (
-        <tr className="border-b border-border terminal-slide-in" style={{ animationDelay: '0.5s' }}>
-          <td className="p-3 font-medium font-mono uppercase tracking-wide">Advisory</td>
+        <tr
+          className="border-b border-border terminal-slide-in"
+          style={{ animationDelay: "0.5s" }}
+        >
+          <td className="p-3 font-medium font-mono uppercase tracking-wide">
+            Advisory
+          </td>
           <td className="p-3 text-center" colSpan={2}>
             <div className="space-y-1 animate-pulse">
               <div className="h-4 bg-muted w-32 mx-auto"></div>
@@ -280,8 +318,13 @@ export function Main() {
     if (!advisory) {
       return (
         <tr className="border-b border-border">
-          <td className="p-3 font-medium font-mono uppercase tracking-wide">Advisory</td>
-          <td className="p-3 text-center text-muted-foreground terminal-list-item" colSpan={2}>
+          <td className="p-3 font-medium font-mono uppercase tracking-wide">
+            Advisory
+          </td>
+          <td
+            className="p-3 text-center text-muted-foreground terminal-list-item"
+            colSpan={2}
+          >
             No data
           </td>
         </tr>
@@ -294,7 +337,9 @@ export function Main() {
 
     return (
       <tr className="border-b border-border terminal-slide-in">
-        <td className="p-3 font-medium font-mono uppercase tracking-wide">Advisory</td>
+        <td className="p-3 font-medium font-mono uppercase tracking-wide">
+          Advisory
+        </td>
         <td className="p-3 text-center" colSpan={2}>
           <div className="space-y-2">
             <div className="space-y-1">
@@ -351,13 +396,13 @@ export function Main() {
   const shouldShowScheduleTable =
     hasAnyScheduleData || data.extractionStatus === "extracting";
 
-      return (
-      <main className="size-full gap-6 flex-col flex items-center p-0 sm:p-8 bg-background min-h-screen">
+  return (
+    <main className="size-full gap-6 flex-col flex items-center p-0 sm:p-8 bg-background min-h-screen">
       {/* Preview Mode Indicator */}
       {isPreviewMode && (
         <div className="w-full max-w-6xl mb-4">
           <Card className="border-primary bg-primary/5">
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-primary" />
                 <span className="text-sm font-mono text-primary">
@@ -370,7 +415,7 @@ export function Main() {
       )}
 
       {stage === "upload" && (
-        <div className="w-full max-w-md space-y-4 terminal-animate-in">
+        <div className="w-full max-w-sm space-y-4 terminal-animate-in">
           {/* Error Display */}
           {data.error && (
             <Card className="border-destructive">
@@ -381,7 +426,9 @@ export function Main() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-destructive terminal-list-item">{data.error}</p>
+                <p className="text-sm text-destructive terminal-list-item">
+                  {data.error}
+                </p>
                 <p className="text-sm text-muted-foreground mt-2 terminal-list-item">
                   Please try again with a different image.
                 </p>
@@ -395,7 +442,8 @@ export function Main() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4 terminal-list-item">
-                Upload a screenshot or photo of your class schedule to get started.
+                Upload a screenshot or photo of your class schedule to get
+                started.
               </p>
               <ImageUpload
                 files={files}
@@ -418,7 +466,9 @@ export function Main() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground terminal-prompt">{data.status}</p>
+              <p className="text-sm text-muted-foreground terminal-prompt">
+                {data.status}
+              </p>
             </CardContent>
           </Card>
 
@@ -441,9 +491,15 @@ export function Main() {
                   <table className="w-full font-mono">
                     <thead>
                       <tr className="border-b border-border bg-muted/50">
-                        <th className="p-3 text-left w-24 uppercase tracking-wide">Period</th>
-                        <th className="p-3 text-left text-red-400 uppercase tracking-wide">Red Day</th>
-                        <th className="p-3 text-left text-blue-400 uppercase tracking-wide">Blue Day</th>
+                        <th className="p-3 text-left w-24 uppercase tracking-wide">
+                          Period
+                        </th>
+                        <th className="p-3 text-left text-red-400 uppercase tracking-wide">
+                          Red Day
+                        </th>
+                        <th className="p-3 text-left text-blue-400 uppercase tracking-wide">
+                          Blue Day
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -546,7 +602,9 @@ export function Main() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-destructive terminal-list-item">{data.error}</p>
+                <p className="text-sm text-destructive terminal-list-item">
+                  {data.error}
+                </p>
               </CardContent>
             </Card>
           )}
@@ -558,7 +616,7 @@ export function Main() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary" />
+                {/* <CheckCircle className="h-4 w-4 text-primary" /> */}
                 Your Schedule & Classmates
               </CardTitle>
             </CardHeader>

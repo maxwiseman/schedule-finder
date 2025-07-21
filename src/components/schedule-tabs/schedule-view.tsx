@@ -23,7 +23,11 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
   ) => {
     const renderDayContent = (dayData: any, dayType: "red" | "blue") => {
       if (dayData === undefined) {
-        return <div className="text-muted-foreground text-sm terminal-list-item">No data</div>;
+        return (
+          <div className="text-muted-foreground text-sm terminal-list-item">
+            No data
+          </div>
+        );
       }
 
       if (dayData === null) {
@@ -79,8 +83,14 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
     };
 
     return (
-      <tr key={periodName} className="border-b border-border terminal-slide-in" style={{ animationDelay: `${periodNumber * 0.1}s` }}>
-        <td className="p-3 font-medium font-mono uppercase tracking-wide">{periodName}</td>
+      <tr
+        key={periodName}
+        className="border-b border-border terminal-slide-in"
+        style={{ animationDelay: `${periodNumber * 0.1}s` }}
+      >
+        <td className="p-3 font-medium font-mono uppercase tracking-wide">
+          {periodName}
+        </td>
         <td className="p-3">{renderDayContent(period?.redDay, "red")}</td>
         <td className="p-3">{renderDayContent(period?.blueDay, "blue")}</td>
       </tr>
@@ -91,8 +101,13 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
     if (!advisory) {
       return (
         <tr className="border-b border-border">
-          <td className="p-3 font-medium font-mono uppercase tracking-wide">Advisory</td>
-          <td className="p-3 text-center text-muted-foreground terminal-list-item" colSpan={2}>
+          <td className="p-3 font-medium font-mono uppercase tracking-wide">
+            Adv
+          </td>
+          <td
+            className="p-3 text-center text-muted-foreground terminal-list-item"
+            colSpan={2}
+          >
             No data
           </td>
         </tr>
@@ -103,8 +118,13 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
     const advisoryClassmates = classmates[advisoryKey] || [];
 
     return (
-      <tr className="border-b border-border terminal-slide-in" style={{ animationDelay: '0.5s' }}>
-        <td className="p-3 font-medium font-mono uppercase tracking-wide">Advisory</td>
+      <tr
+        className="border-b border-border terminal-slide-in"
+        style={{ animationDelay: "0.5s" }}
+      >
+        <td className="p-3 font-medium font-mono uppercase tracking-wide">
+          Adv
+        </td>
         <td className="p-3 text-center" colSpan={2}>
           <div className="space-y-2">
             <div className="space-y-1">
@@ -135,9 +155,15 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
       <table className="w-full font-mono">
         <thead>
           <tr className="border-b border-border bg-muted/50">
-            <th className="p-3 text-left w-24 uppercase tracking-wide">Period</th>
-            <th className="p-3 text-left text-red-400 uppercase tracking-wide">Red Day</th>
-            <th className="p-3 text-left text-blue-400 uppercase tracking-wide">Blue Day</th>
+            <th className="p-3 text-left w-24 uppercase tracking-wide">
+              Period
+            </th>
+            <th className="p-3 text-left text-red-400 uppercase tracking-wide">
+              Red Day
+            </th>
+            <th className="p-3 text-left text-blue-400 uppercase tracking-wide">
+              Blue Day
+            </th>
           </tr>
         </thead>
         <tbody>
