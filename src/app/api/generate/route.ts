@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/server/db";
 import { schedule, course, enrollment } from "@/server/db/schema";
 import { eq, and, or } from "drizzle-orm";
+import { shouldSkipDatabase } from "@/lib/env-utils";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -389,41 +390,49 @@ export async function POST(req: Request) {
             )
           );
 
-          // Step 3: Save to database
-          controller.enqueue(
-            new TextEncoder().encode(
-              JSON.stringify({ type: "database", data: "saving" }) + "\n"
-            )
-          );
-
-          try {
-            const savedSchedule = await saveScheduleToDatabase(
-              userId,
-              finalJsonData
-            );
-
+          // Step 3: Save to database (skip in preview mode)
+          if (shouldSkipDatabase()) {
             controller.enqueue(
               new TextEncoder().encode(
-                JSON.stringify({
-                  type: "database",
-                  data: "complete",
-                  scheduleId: savedSchedule.id,
-                }) + "\n"
+                JSON.stringify({ type: "database", data: "skipped" }) + "\n"
               )
             );
-          } catch (dbError) {
+          } else {
             controller.enqueue(
               new TextEncoder().encode(
-                JSON.stringify({
-                  type: "database",
-                  data: "error",
-                  error:
-                    dbError instanceof Error
-                      ? dbError.message
-                      : "Database error",
-                }) + "\n"
+                JSON.stringify({ type: "database", data: "saving" }) + "\n"
               )
             );
+
+            try {
+              const savedSchedule = await saveScheduleToDatabase(
+                userId,
+                finalJsonData
+              );
+
+              controller.enqueue(
+                new TextEncoder().encode(
+                  JSON.stringify({
+                    type: "database",
+                    data: "complete",
+                    scheduleId: savedSchedule.id,
+                  }) + "\n"
+                )
+              );
+            } catch (dbError) {
+              controller.enqueue(
+                new TextEncoder().encode(
+                  JSON.stringify({
+                    type: "database",
+                    data: "error",
+                    error:
+                      dbError instanceof Error
+                        ? dbError.message
+                        : "Database error",
+                  }) + "\n"
+                )
+              );
+            }
           }
 
           controller.close();

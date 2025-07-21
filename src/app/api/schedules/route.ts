@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { schedule, course, enrollment, user } from "@/server/db/schema";
 import { eq, and, or } from "drizzle-orm";
 import { NextRequest } from "next/server";
+import { shouldSkipDatabase } from "@/lib/env-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +11,14 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return Response.json({ error: "User ID required" }, { status: 400 });
+    }
+
+    // In preview mode, return empty data since we don't save to database
+    if (shouldSkipDatabase()) {
+      return Response.json({
+        schedule: null,
+        classmates: {},
+      });
     }
 
     // Get user's schedule

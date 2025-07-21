@@ -27,17 +27,17 @@ interface ScheduleTabsProps {
 
 export function ScheduleTabs({ scheduleData, classmates }: ScheduleTabsProps) {
   return (
-    <Tabs defaultValue="schedule" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="schedule" className="flex items-center gap-2">
+    <Tabs defaultValue="schedule" className="w-full terminal-animate-in">
+      <TabsList className="grid w-full grid-cols-3 bg-muted/50 border border-border">
+        <TabsTrigger value="schedule" className="flex items-center gap-2 font-mono uppercase tracking-wide">
           <Calendar className="h-4 w-4" />
           Schedule
         </TabsTrigger>
-        <TabsTrigger value="classes" className="flex items-center gap-2">
+        <TabsTrigger value="classes" className="flex items-center gap-2 font-mono uppercase tracking-wide">
           <BookOpen className="h-4 w-4" />
           Classes
         </TabsTrigger>
-        <TabsTrigger value="classmates" className="flex items-center gap-2">
+        <TabsTrigger value="classmates" className="flex items-center gap-2 font-mono uppercase tracking-wide">
           <Users className="h-4 w-4" />
           Classmates
         </TabsTrigger>

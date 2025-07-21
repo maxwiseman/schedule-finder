@@ -4,7 +4,19 @@ import type { NextRequest } from "next/server";
 // Replace with your actual session cookie name, if customized in BetterAuth config
 const SESSION_COOKIE_NAME = "session_token";
 
+// Check if we're in Vercel preview mode
+function isVercelPreview(request: NextRequest): boolean {
+  const vercelEnv = request.headers.get('x-vercel-deployment-url') || 
+                   process.env.VERCEL_ENV;
+  return vercelEnv !== undefined && vercelEnv !== "production";
+}
+
 export function middleware(request: NextRequest) {
+  // Skip authentication in Vercel preview environments
+  if (isVercelPreview(request)) {
+    return NextResponse.next();
+  }
+
   // Check if any cookie name contains the session string
   const hasSessionCookie = Array.from(request.cookies.getAll()).some((cookie) =>
     cookie.name.includes(SESSION_COOKIE_NAME)
