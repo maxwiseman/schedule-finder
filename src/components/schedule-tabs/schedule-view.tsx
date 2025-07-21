@@ -13,7 +13,6 @@ interface ScheduleViewProps {
     Array<{
       userId: string;
       userName: string;
-      userEmail: string;
       period: number;
       dayType: string;
     }>
@@ -125,7 +124,7 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
         className="border-b border-border terminal-slide-in"
         style={{ animationDelay: `${periodNumber * 0.1}s` }}
       >
-        <td className="p-3 font-medium font-mono uppercase tracking-wide">
+        <td className="p-3 font-medium font-mono uppercase tracking-wide hidden md:table-cell">
           {periodName}
         </td>
         <td className="p-3">{renderDayContent(period?.redDay, "red")}</td>
@@ -138,7 +137,7 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
     if (!advisory) {
       return (
         <tr className="border-b border-border">
-          <td className="p-3 font-medium font-mono uppercase tracking-wide">
+          <td className="p-3 font-medium font-mono uppercase tracking-wide hidden md:table-cell">
             Adv
           </td>
           <td
@@ -159,7 +158,7 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
         className="border-b border-border terminal-slide-in"
         style={{ animationDelay: "0.5s" }}
       >
-        <td className="p-3 font-medium font-mono uppercase tracking-wide">
+        <td className="p-3 font-medium font-mono uppercase tracking-wide hidden md:table-cell">
           Adv
         </td>
         <td className="p-3 text-center" colSpan={2}>
@@ -208,7 +207,7 @@ export function ScheduleView({ scheduleData, classmates }: ScheduleViewProps) {
       <table className="w-full font-mono">
         <thead>
           <tr className="border-b border-border bg-muted/50">
-            <th className="p-3 text-left w-24 uppercase tracking-wide">
+            <th className="p-3 text-left w-24 uppercase tracking-wide hidden md:table-cell">
               Period
             </th>
             <th className="p-3 text-left text-red-400 uppercase tracking-wide">

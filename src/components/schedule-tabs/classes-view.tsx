@@ -11,7 +11,6 @@ interface ClassesViewProps {
     Array<{
       userId: string;
       userName: string;
-      userEmail: string;
       period: number;
       dayType: string;
     }>
@@ -28,7 +27,6 @@ interface ClassInfo {
   students: Array<{
     userId: string;
     userName: string;
-    userEmail: string;
   }>;
 }
 
@@ -56,7 +54,6 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
         students: students.map((s) => ({
           userId: s.userId,
           userName: s.userName,
-          userEmail: s.userEmail,
         })),
       });
     };
@@ -86,7 +83,6 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
             students: freeStudents.map((s) => ({
               userId: s.userId,
               userName: s.userName,
-              userEmail: s.userEmail,
             })),
           });
         } else {
@@ -110,7 +106,6 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
             students: freeStudents.map((s) => ({
               userId: s.userId,
               userName: s.userName,
-              userEmail: s.userEmail,
             })),
           });
         } else {
@@ -134,7 +129,6 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
         students: advisoryStudents.map((s) => ({
           userId: s.userId,
           userName: s.userName,
-          userEmail: s.userEmail,
         })),
       });
     }
@@ -224,7 +218,7 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
                     classInfo.courseName
                   )}
                 </CardTitle>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground font-mono">
+                <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-sm text-muted-foreground font-mono">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {getPeriodLabel(classInfo.period, classInfo.dayType)}
@@ -257,20 +251,13 @@ export function ClassesView({ scheduleData, classmates }: ClassesViewProps) {
                         {classInfo.students.length !== 1 ? "s" : ""}
                       </span>
                     </div>
-                    <div className="grid gap-2">
+                    <div className="flex flex-col gap-1 p-2 bg-muted/30 border border-border terminal-slide-in">
                       {classInfo.students.map((student) => (
                         <div
                           key={student.userId}
-                          className="flex items-center justify-between p-2 bg-muted/30 border border-border terminal-slide-in"
+                          className="font-medium text-sm font-mono terminal-list-item"
                         >
-                          <div>
-                            <div className="font-medium text-sm font-mono terminal-list-item">
-                              {student.userName}
-                            </div>
-                            <div className="text-xs text-muted-foreground ml-4 font-mono">
-                              {student.userEmail}
-                            </div>
-                          </div>
+                          {student.userName}
                         </div>
                       ))}
                     </div>

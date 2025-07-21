@@ -11,7 +11,6 @@ interface ClassmatesViewProps {
     Array<{
       userId: string;
       userName: string;
-      userEmail: string;
       period: number;
       dayType: string;
     }>
@@ -21,7 +20,6 @@ interface ClassmatesViewProps {
 interface ClassmateInfo {
   userId: string;
   userName: string;
-  userEmail: string;
   sharedClasses: Array<{
     courseName: string;
     courseCode: string;
@@ -102,7 +100,6 @@ export function ClassmatesView({
           classmateMap.set(student.userId, {
             userId: student.userId,
             userName: student.userName,
-            userEmail: student.userEmail,
             sharedClasses: [],
           });
         }
@@ -135,7 +132,6 @@ export function ClassmatesView({
     const searchLower = searchTerm.toLowerCase();
     return (
       classmate.userName.toLowerCase().includes(searchLower) ||
-      classmate.userEmail.toLowerCase().includes(searchLower) ||
       classmate.sharedClasses.some(
         (cls) =>
           cls.courseName.toLowerCase().includes(searchLower) ||
@@ -206,9 +202,6 @@ export function ClassmatesView({
                 <CardTitle className="text-lg terminal-header">
                   {classmate.userName}
                 </CardTitle>
-                <div className="text-sm text-muted-foreground font-mono">
-                  {classmate.userEmail}
-                </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium font-mono uppercase tracking-wide">

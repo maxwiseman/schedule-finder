@@ -97,7 +97,6 @@ export async function GET(request: NextRequest) {
       Array<{
         userId: string;
         userName: string;
-        userEmail: string;
         period: number;
         dayType: string;
       }>
@@ -182,7 +181,6 @@ export async function GET(request: NextRequest) {
         classmates[courseKey] = validClassmates.map((c) => ({
           userId: c.userId,
           userName: c.userName,
-          userEmail: c.userEmail,
           period: c.period,
           dayType: c.dayType,
         }));
