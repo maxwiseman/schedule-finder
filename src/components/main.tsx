@@ -11,17 +11,9 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  CheckCircle,
-  Loader2,
-  XCircle,
-  Users,
-  Database,
-  Terminal,
-} from "lucide-react";
+import { XCircle, Users, Database, Terminal } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ScheduleTabs } from "./schedule-tabs/schedule-tabs";
-import { redirect } from "next/navigation";
 
 // Check if we're in preview mode on the client side
 const isPreviewMode =
@@ -73,6 +65,8 @@ export function Main() {
 
     setStage("generating");
     reset(); // Clear any previous errors
+    // Clear previewed schedule data immediately
+    queryClient.setQueryData(["schedule", userId], null);
     await startGeneration(files[0], userId);
 
     // Only invalidate and refetch if we have a real session
@@ -130,12 +124,9 @@ export function Main() {
         <div className="terminal-animate-in">
           <Card>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="terminal-prompt">
-                  Checking for existing schedule...
-                </span>
-              </div>
+              <span className="terminal-prompt">
+                Checking for existing schedule...
+              </span>
             </CardContent>
           </Card>
         </div>
@@ -461,7 +452,6 @@ export function Main() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 Processing Schedule
               </CardTitle>
             </CardHeader>
@@ -478,12 +468,6 @@ export function Main() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   Schedule Data
-                  {data.extractionStatus === "extracting" && (
-                    <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                  )}
-                  {data.extractionStatus === "complete" && (
-                    <CheckCircle className="h-3 w-3 text-primary" />
-                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -548,17 +532,9 @@ export function Main() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {data.databaseStatus === "saving" && (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                      Saving to Database
-                    </>
-                  )}
+                  {data.databaseStatus === "saving" && <>Saving to Database</>}
                   {data.databaseStatus === "complete" && (
-                    <>
-                      <CheckCircle className="h-4 w-4 text-primary" />
-                      Saved Successfully
-                    </>
+                    <>Saved Successfully</>
                   )}
                   {data.databaseStatus === "skipped" && (
                     <>
@@ -631,9 +607,6 @@ export function Main() {
                     variant="outline"
                     disabled={isLoadingExisting}
                   >
-                    {isLoadingExisting ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : null}
                     Refresh Data
                   </Button>
                 )}

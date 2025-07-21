@@ -368,7 +368,7 @@ export async function POST(req: Request) {
     // Step 1: Initial validation
     console.log("Running initial validation...");
     const initialValidation = await generateObject({
-      model: openai("gpt-4.1-mini"),
+      model: openai("gpt-4.1"),
       schema: z.object({
         isValid: z.boolean(),
         confidence: z.number(),
@@ -380,7 +380,7 @@ export async function POST(req: Request) {
           content: [
             {
               type: "text",
-              text: "Determine whether this image contains a valid schedule for a student. The image is still acceptable even if it's not cropped exactly to the schedule. Images may contain extraneous information, but as long as the schedule is visible, it's acceptable. The schedule will look like a table with rows and two columns.",
+              text: "Determine whether this image contains a valid schedule for a student. The image is still acceptable even if it's not cropped exactly to the schedule. Images may contain extraneous information, but as long as the schedule is visible, it's acceptable. The schedule should look like a table with rows and two columns. If it is not present, mark the image as invalid. Otherwise, mark the image as valid.",
             },
             { type: "image", image: imageUrl },
           ],
