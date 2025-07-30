@@ -5,7 +5,7 @@ import { JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Schedule Checker",
+  title: "Schedule Matchers",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

@@ -69,10 +69,10 @@ export default function Page() {
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-xl font-mono uppercase tracking-wide terminal-header">
-                    Schedule Checker
+                  <h1 className="text-xl font-mono uppercase tracking-wide">
+                    Schedule Matcher
                   </h1>
-                  <p className="text-sm text-muted-foreground font-mono terminal-prompt">
+                  <p className="text-sm text-muted-foreground font-mono">
                     Sign in to view your schedule and find classmates
                   </p>
                 </div>
@@ -85,6 +85,9 @@ export default function Page() {
                 >
                   Sign in with Google
                 </Button>
+                <Card className="border-yellow-500/50 bg-yellow-500/10 p-4 text-xs text-left">
+                  Don't use your school account to sign in
+                </Card>
               </div>
             </CardContent>
           </Card>
