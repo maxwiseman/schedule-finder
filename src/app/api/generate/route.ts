@@ -83,6 +83,9 @@ async function saveScheduleToDatabase(
         roomNumber:
           courseData.roomNumber?.replace(/[^a-zA-Z0-9]/g, "").toUpperCase() ||
           undefined,
+        teacherName: courseData.teacherName
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .toUpperCase(),
       };
 
       // Search for all courses with the same teacher name first
