@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Users, Calendar, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,12 @@ interface ClassmateInfo {
     dayType: string;
     roomNumber?: string;
   }>;
+}
+
+interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
 }
 
 // Component to display a schedule in the dialog
@@ -180,6 +186,31 @@ export function ClassmatesView({
     useState<ScheduleData | null>(null);
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState<UserInfo[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Fetch all users with a schedule
+  useEffect(() => {
+    async function fetchUsers() {
+      // Try to get current user ID from scheduleData (advisory or any period)
+      // This is a hack; ideally, userId should be passed as a prop
+      let userId: string | null = null;
+      // Try to infer from classmates keys
+      for (const key in classmates) {
+        if (classmates[key]?.[0]?.userId) {
+          userId = classmates[key][0].userId;
+          break;
+        }
+      }
+      setCurrentUserId(userId);
+      const res = await fetch(
+        `/api/users${userId ? `?excludeUserId=${userId}` : ""}`
+      );
+      const data = await res.json();
+      setAllUsers(data.users || []);
+    }
+    fetchUsers();
+  }, [classmates]);
 
   // Function to fetch a classmate's schedule
   const fetchClassmateSchedule = async (userId: string) => {
@@ -200,10 +231,16 @@ export function ClassmatesView({
   };
 
   // Handle opening the dialog for a classmate
-  const handleViewSchedule = async (classmate: ClassmateInfo) => {
-    setSelectedClassmate(classmate);
+  const handleViewSchedule = async (classmate: ClassmateInfo | UserInfo) => {
+    setSelectedClassmate(
+      "userId" in classmate
+        ? (classmate as ClassmateInfo)
+        : { userId: classmate.id, userName: classmate.name, sharedClasses: [] }
+    );
     setDialogOpen(true);
-    await fetchClassmateSchedule(classmate.userId);
+    await fetchClassmateSchedule(
+      "userId" in classmate ? classmate.userId : classmate.id
+    );
   };
 
   // Extract all unique classmates and their shared classes
@@ -296,10 +333,11 @@ export function ClassmatesView({
   };
 
   const allClassmates = extractClassmates();
+  const sharedClassmateIds = new Set(allClassmates.map((c) => c.userId));
 
   // Filter classmates based on search term
+  const searchLower = searchTerm.toLowerCase();
   const filteredClassmates = allClassmates.filter((classmate) => {
-    const searchLower = searchTerm.toLowerCase();
     return (
       classmate.userName.toLowerCase().includes(searchLower) ||
       classmate.sharedClasses.some(
@@ -310,6 +348,11 @@ export function ClassmatesView({
       )
     );
   });
+
+  // Everyone else (not in any shared class)
+  const filteredEveryoneElse = allUsers
+    .filter((user) => !sharedClassmateIds.has(user.id))
+    .filter((user) => user.name.toLowerCase().includes(searchLower));
 
   const getPeriodLabel = (period: number, dayType: string) => {
     if (period === 5) return "Advisory";
@@ -336,7 +379,7 @@ export function ClassmatesView({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
-          placeholder="Search classmates or shared classes..."
+          placeholder="Search classmates or all users..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -345,98 +388,131 @@ export function ClassmatesView({
 
       {/* Results count */}
       <div className="text-sm text-muted-foreground font-mono terminal-prompt">
-        {filteredClassmates.length} of {allClassmates.length} classmates
+        {filteredClassmates.length} classmates with shared classes,{" "}
+        {filteredEveryoneElse.length} other users
         {searchTerm && ` matching "${searchTerm}"`}
       </div>
 
-      {/* Classmates list */}
+      {/* Shared Classmates */}
       <div className="space-y-3">
-        {filteredClassmates.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center text-muted-foreground terminal-list-item">
-                {searchTerm
-                  ? "No classmates match your search."
-                  : "No classmates found."}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredClassmates.map((classmate, index) => (
-            <Card
-              key={classmate.userId}
-              className="terminal-slide-in"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg terminal-header">
-                      {classmate.userName}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium font-mono uppercase tracking-wide">
-                        {classmate.sharedClasses.length} shared class
-                        {classmate.sharedClasses.length !== 1 ? "es" : ""}
-                      </span>
+        {filteredClassmates.length > 0 && (
+          <>
+            <div className="font-mono uppercase tracking-wide text-primary text-xs pb-1">
+              Shared Classes
+            </div>
+            {filteredClassmates.map((classmate, index) => (
+              <Card
+                key={classmate.userId}
+                className="terminal-slide-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <CardHeader className="pb-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg terminal-header">
+                        {classmate.userName}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium font-mono uppercase tracking-wide">
+                          {classmate.sharedClasses.length} shared class
+                          {classmate.sharedClasses.length !== 1 ? "es" : ""}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewSchedule(classmate)}
-                    className="font-mono uppercase tracking-wide"
-                  >
-                    <Eye className="h-4 w-4" />
-                    View Schedule
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {classmate.sharedClasses.map((sharedClass, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-muted/30 border border-border terminal-slide-in"
-                      style={{ animationDelay: `${index * 0.02}s` }}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewSchedule(classmate)}
+                      className="font-mono uppercase tracking-wide"
                     >
-                      <div>
-                        <div className="font-medium text-sm terminal-header">
-                          {sharedClass.courseCode === "FREE" ? (
-                            <span className="text-muted-foreground italic">
-                              {sharedClass.courseName}
-                            </span>
-                          ) : (
-                            sharedClass.courseName
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-mono">
-                          {sharedClass.teacherName}
-                          {sharedClass.roomNumber &&
-                            ` • ${sharedClass.roomNumber}`}
-                        </div>
-                        {sharedClass.courseCode !== "FREE" && (
-                          <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 w-fit mt-1">
-                            {sharedClass.courseCode}
+                      <Eye className="h-4 w-4" />
+                      View Schedule
+                    </Button>
+                  </div>
+                </CardHeader>
+                {classmate.sharedClasses.length > 0 && (
+                  <CardContent>
+                    <div className="space-y-2">
+                      {classmate.sharedClasses.map((sharedClass, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-muted/30 border border-border terminal-slide-in"
+                          style={{ animationDelay: `${index * 0.02}s` }}
+                        >
+                          <div>
+                            <div className="font-medium text-sm terminal-header">
+                              {sharedClass.courseCode === "FREE" ? (
+                                <span className="text-muted-foreground italic">
+                                  {sharedClass.courseName}
+                                </span>
+                              ) : (
+                                sharedClass.courseName
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground font-mono">
+                              {sharedClass.teacherName}
+                              {sharedClass.roomNumber &&
+                                ` • ${sharedClass.roomNumber}`}
+                            </div>
+                            {sharedClass.courseCode !== "FREE" && (
+                              <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 w-fit mt-1">
+                                {sharedClass.courseCode}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {getPeriodLabel(
-                            sharedClass.period,
-                            sharedClass.dayType
-                          )}
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {getPeriodLabel(
+                                sharedClass.period,
+                                sharedClass.dayType
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* Everyone Else */}
+      <div className="space-y-3">
+        {filteredEveryoneElse.length > 0 && (
+          <>
+            <div className="font-mono uppercase tracking-wide text-muted-foreground text-xs pb-1 pt-4">
+              Everyone Else
+            </div>
+            {filteredEveryoneElse.map((user, index) => (
+              <Card
+                key={user.id}
+                className="terminal-slide-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <CardHeader className="pb-0 block">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg terminal-header">
+                      {user.name}
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewSchedule(user)}
+                      className="font-mono uppercase tracking-wide"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View Schedule
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </>
         )}
       </div>
 
@@ -459,7 +535,7 @@ export function ClassmatesView({
               <ScheduleDialog scheduleData={classmateSchedule} />
             ) : (
               <div className="text-center text-muted-foreground terminal-list-item py-8">
-                No schedule found for this classmate.
+                No schedule found for this user.
               </div>
             )}
           </div>
