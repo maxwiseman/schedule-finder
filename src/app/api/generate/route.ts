@@ -89,7 +89,7 @@ async function saveScheduleToDatabase(
       const existingCourses = await db
         .select()
         .from(course)
-        .where(eq(course.teacherName, courseData.teacherName));
+        .where(eq(course.teacherName, courseData.teacherName.toUpperCase()));
 
       // Check each existing course for compatibility with normalization
       for (const existingCourse of existingCourses) {
@@ -105,7 +105,7 @@ async function saveScheduleToDatabase(
         .values({
           courseCode: courseData.courseCode || null,
           courseName: courseData.courseName,
-          teacherName: courseData.teacherName,
+          teacherName: courseData.teacherName.toUpperCase(),
           roomNumber: courseData.roomNumber || null,
         })
         .returning();
