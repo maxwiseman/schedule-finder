@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { Search, Users, Calendar } from "lucide-react";
+import { Search, Users, Calendar, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import type { ScheduleData } from "@/lib/use-stream-generation";
 
 interface ClassmatesViewProps {
@@ -30,11 +38,173 @@ interface ClassmateInfo {
   }>;
 }
 
+// Component to display a schedule in the dialog
+function ScheduleDialog({ scheduleData }: { scheduleData: ScheduleData }) {
+  const renderPeriodRow = (
+    periodName: string,
+    periodNumber: number,
+    period: any
+  ) => {
+    const renderDayContent = (dayData: any, dayType: "red" | "blue") => {
+      if (dayData === undefined) {
+        return (
+          <div className="text-muted-foreground text-sm terminal-list-item">
+            No data
+          </div>
+        );
+      }
+
+      if (dayData === null) {
+        return (
+          <div className="space-y-2 terminal-slide-in">
+            <div className="space-y-1">
+              <div className="font-medium text-muted-foreground italic">
+                [FREE PERIOD]
+              </div>
+              <div className="text-xs text-muted-foreground">
+                No class scheduled
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="space-y-2 terminal-slide-in">
+          <div className="space-y-1">
+            <div className="font-medium">{dayData.courseName || "..."}</div>
+            <div className="text-sm text-muted-foreground">
+              {dayData.teacherName || "..."}
+              {dayData.roomNumber && ` • ${dayData.roomNumber}`}
+            </div>
+            <div className="text-xs text-muted-foreground font-mono">
+              {dayData.courseCode || "..."}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <tr
+        key={periodName}
+        className="border-b border-border terminal-slide-in"
+        style={{ animationDelay: `${periodNumber * 0.1}s` }}
+      >
+        <td className="p-3 font-medium font-mono uppercase tracking-wide hidden md:table-cell">
+          {periodName}
+        </td>
+        <td className="p-3">{renderDayContent(period?.redDay, "red")}</td>
+        <td className="p-3">{renderDayContent(period?.blueDay, "blue")}</td>
+      </tr>
+    );
+  };
+
+  const renderAdvisoryRow = (advisory: any) => {
+    if (!advisory) {
+      return (
+        <tr className="border-b border-border">
+          <td className="p-3 font-medium font-mono uppercase tracking-wide hidden md:table-cell">
+            Adv
+          </td>
+          <td
+            className="p-3 text-center text-muted-foreground terminal-list-item"
+            colSpan={2}
+          >
+            No data
+          </td>
+        </tr>
+      );
+    }
+
+    return (
+      <tr
+        className="border-b border-border terminal-slide-in"
+        style={{ animationDelay: "0.5s" }}
+      >
+        <td className="p-3 font-medium font-mono uppercase tracking-wide hidden md:table-cell">
+          Adv
+        </td>
+        <td className="p-3 text-center" colSpan={2}>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <div className="font-medium">{advisory.teacherName}</div>
+              {advisory.roomNumber && (
+                <div className="text-xs text-muted-foreground">
+                  {advisory.roomNumber}
+                </div>
+              )}
+            </div>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+  return (
+    <div className="border border-border terminal-animate-in">
+      <table className="w-full font-mono">
+        <thead>
+          <tr className="border-b border-border bg-muted/50">
+            <th className="p-3 text-left w-24 uppercase tracking-wide hidden md:table-cell">
+              Period
+            </th>
+            <th className="p-3 text-left text-red-400 uppercase tracking-wide">
+              Red Day
+            </th>
+            <th className="p-3 text-left text-blue-400 uppercase tracking-wide">
+              Blue Day
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {renderPeriodRow("1st", 1, scheduleData.firstPeriod)}
+          {renderPeriodRow("2nd", 2, scheduleData.secondPeriod)}
+          {renderPeriodRow("3rd", 3, scheduleData.thirdPeriod)}
+          {renderPeriodRow("4th", 4, scheduleData.fourthPeriod)}
+          {renderAdvisoryRow(scheduleData.advisory)}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function ClassmatesView({
   scheduleData,
   classmates,
 }: ClassmatesViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClassmate, setSelectedClassmate] =
+    useState<ClassmateInfo | null>(null);
+  const [classmateSchedule, setClassmateSchedule] =
+    useState<ScheduleData | null>(null);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Function to fetch a classmate's schedule
+  const fetchClassmateSchedule = async (userId: string) => {
+    setIsLoadingSchedule(true);
+    try {
+      const response = await fetch(`/api/schedules?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch schedule");
+      }
+      const data = await response.json();
+      setClassmateSchedule(data.schedule);
+    } catch (error) {
+      console.error("Error fetching classmate schedule:", error);
+      setClassmateSchedule(null);
+    } finally {
+      setIsLoadingSchedule(false);
+    }
+  };
+
+  // Handle opening the dialog for a classmate
+  const handleViewSchedule = async (classmate: ClassmateInfo) => {
+    setSelectedClassmate(classmate);
+    setDialogOpen(true);
+    await fetchClassmateSchedule(classmate.userId);
+  };
 
   // Extract all unique classmates and their shared classes
   const extractClassmates = (): ClassmateInfo[] => {
@@ -199,15 +369,28 @@ export function ClassmatesView({
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg terminal-header">
-                  {classmate.userName}
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium font-mono uppercase tracking-wide">
-                    {classmate.sharedClasses.length} shared class
-                    {classmate.sharedClasses.length !== 1 ? "es" : ""}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg terminal-header">
+                      {classmate.userName}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium font-mono uppercase tracking-wide">
+                        {classmate.sharedClasses.length} shared class
+                        {classmate.sharedClasses.length !== 1 ? "es" : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewSchedule(classmate)}
+                    className="font-mono uppercase tracking-wide"
+                  >
+                    <Eye className="h-4 w-4" />
+                    View Schedule
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -256,6 +439,32 @@ export function ClassmatesView({
           ))
         )}
       </div>
+
+      {/* Schedule Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="lg:max-w-6xl w-full max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-mono uppercase tracking-wide">
+              {selectedClassmate?.userName}'s Schedule
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {isLoadingSchedule ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-muted-foreground font-mono terminal-prompt">
+                  Loading schedule...
+                </div>
+              </div>
+            ) : classmateSchedule ? (
+              <ScheduleDialog scheduleData={classmateSchedule} />
+            ) : (
+              <div className="text-center text-muted-foreground terminal-list-item py-8">
+                No schedule found for this classmate.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
